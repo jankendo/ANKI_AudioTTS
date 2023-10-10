@@ -1,7 +1,9 @@
+import json
 import os
+import shutil
 import subprocess
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 from tkinter import ttk
 from tkinter.simpledialog import askstring
 
@@ -11,7 +13,6 @@ voice_list_file = "voice.list"
 def get_voice_list():
     if not os.path.exists(voice_list_file):
         subprocess.run("edge-tts --list-voice >> voice.list", shell=True)
-
 
 
 def adjust_layout(event):
@@ -52,7 +53,9 @@ def create_filter_elements():
 
 
 def create_buttons():
-    show_all_button = tk.Button(root, text="Show All Names", command=show_all_names)
+    show_all_button = tk.Button(root, text="Generate Voice", command=show_all_names)
+    show_all_button.pack()
+    show_all_button = tk.Button(root, text="Generate Json Voice", command=output_all_json)
     show_all_button.pack()
 
 
@@ -92,9 +95,42 @@ def show_all_names():
     text = askstring("words", "Enter Words:")
     if all_names:
         for voice in all_names:
-            command = ["edge-tts", "--voice", voice, "--text", text, "--write-media", voice+".mp3"]
+            command = ["edge-tts", "--voice", voice, "--text", text, "--write-media", voice + ".mp3"]
             subprocess.run(command, shell=False)
     else:
+        messagebox.showwarning("No Names", "There are no Names to save")
+
+
+def output_all_json():
+    all_names = name_listbox.get(0, tk.END)
+    folder_path = filedialog.askdirectory()
+
+    output_folder = "./output"
+    os.makedirs(output_folder, exist_ok=True)
+
+    for file_path in os.listdir(folder_path):
+        if file_path.endswith(".json"):
+            json_open = open(os.path.join(folder_path, file_path), 'r')
+            json_load = json.load(json_open)
+            jsonpath = os.path.join(output_folder, file_path.replace(".json", ""))
+            if os.path.exists(jsonpath):
+                shutil.rmtree(jsonpath)
+            os.makedirs(jsonpath)
+            for voice in all_names:
+                voicepath = os.path.join(jsonpath, voice)
+                if os.path.exists(voicepath):
+                    shutil.rmtree(voicepath)
+                os.makedirs(voicepath)
+                for jsoncards in json_load['cards']:
+                    command = [
+                        "edge-tts",
+                        "--voice", voice,
+                        "--text", jsoncards['sentence'],
+                        "--write-media", os.path.join(voicepath, f"{voice}_{json_load['id']}_{jsoncards['id']}.mp3")
+                    ]
+                    subprocess.run(command, shell=False)
+
+    if not all_names:
         messagebox.showwarning("No Names", "There are no Names to save")
 
 
