@@ -113,14 +113,10 @@ def output_all_json():
             json_open = open(os.path.join(folder_path, file_path), 'r')
             json_load = json.load(json_open)
             jsonpath = os.path.join(output_folder, file_path.replace(".json", ""))
-            if os.path.exists(jsonpath):
-                shutil.rmtree(jsonpath)
-            os.makedirs(jsonpath)
+            os.makedirs(jsonpath, exist_ok=True)
             for voice in all_names:
                 voicepath = os.path.join(jsonpath, voice)
-                if os.path.exists(voicepath):
-                    shutil.rmtree(voicepath)
-                os.makedirs(voicepath)
+                os.makedirs(voicepath, exist_ok=True)
                 for jsoncards in json_load['cards']:
                     command = [
                         "edge-tts",
