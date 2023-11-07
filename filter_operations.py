@@ -37,14 +37,14 @@ def output_all_json(name_listbox):
     all_names = name_listbox.get(0, tk.END)
     folder_path = filedialog.askdirectory()
 
-    output_folder = "./output"
+    output_folder = "./Voices"
     os.makedirs(output_folder, exist_ok=True)
 
     for file_path in os.listdir(folder_path):
         if file_path.endswith(".json"):
             json_open = open(os.path.join(folder_path, file_path), 'r')
             json_load = json.load(json_open)
-            jsonpath = os.path.join(output_folder, file_path.replace(".json", ""))
+            jsonpath = os.path.join(output_folder, f"deck{json_load['id']}")
             os.makedirs(jsonpath, exist_ok=True)
             for voice in all_names:
                 voicepath = os.path.join(jsonpath, voice)
@@ -54,7 +54,7 @@ def output_all_json(name_listbox):
                         "edge-tts",
                         "--voice", voice,
                         "--text", jsoncards['sentence'],
-                        "--write-media", os.path.join(voicepath, f"{voice}_{json_load['id']}_{jsoncards['id']}.mp3")
+                        "--write-media", os.path.join(voicepath, f"{jsoncards['id']}.mp3")
                     ]
                     subprocess.run(command, shell=False)
 
